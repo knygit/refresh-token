@@ -6,10 +6,31 @@ if (!file_exists($envFile)) {
     die('Missing .env file. Copy .env.example to .env and fill in your values.');
 }
 
-$env = parse_ini_file($envFile);
+$env = [];
+$lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
-if ($env === false) {
-    die('Failed to parse .env file.');
+foreach ($lines as $line) {
+    $line = trim($line);
+
+    // Skip comments
+    if ($line === '' || $line[0] === '#') {
+        continue;
+    }
+
+    $pos = strpos($line, '=');
+    if ($pos === false) {
+        continue;
+    }
+
+    $key = trim(substr($line, 0, $pos));
+    $value = trim(substr($line, $pos + 1));
+
+    // Remove surrounding quotes if present
+    if (strlen($value) >= 2 && $value[0] === '"' && $value[-1] === '"') {
+        $value = substr($value, 1, -1);
+    }
+
+    $env[$key] = $value;
 }
 
 define('MS_CLIENT_ID', $env['MS_CLIENT_ID'] ?? '');
