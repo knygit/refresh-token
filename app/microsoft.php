@@ -8,7 +8,7 @@ function msGetAuthUrl(): string
         'redirect_uri'  => MS_REDIRECT_URI,
         'scope'         => MS_SCOPES,
         'response_mode' => 'query',
-        'state'         => bin2hex(random_bytes(16)),
+        'state'         => bin2hex(random_bytes(32)),
     ];
 
     $_SESSION['oauth_state'] = $params['state'];
@@ -51,13 +51,16 @@ function msTokenRequest(array $params): ?array
         CURLOPT_POSTFIELDS     => http_build_query($params),
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_HTTPHEADER     => ['Content-Type: application/x-www-form-urlencoded'],
+        CURLOPT_TIMEOUT        => 10,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_SSL_VERIFYHOST => 2,
     ]);
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    if ($httpCode !== 200) {
+    if ($httpCode !== 200 || $response === false) {
         return null;
     }
 
@@ -76,13 +79,16 @@ function msGetUserProfile(string $accessToken): ?array
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . $accessToken],
+        CURLOPT_TIMEOUT        => 10,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_SSL_VERIFYHOST => 2,
     ]);
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    if ($httpCode !== 200) {
+    if ($httpCode !== 200 || $response === false) {
         return null;
     }
 

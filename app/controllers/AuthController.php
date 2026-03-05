@@ -12,34 +12,47 @@ function callback(): void
 {
     startAppSession();
 
-    // Verify state
+    // Verify state (CSRF protection)
     $state = $_GET['state'] ?? '';
-    if ($state === '' || $state !== ($_SESSION['oauth_state'] ?? '')) {
-        die('Invalid OAuth state. Please try again.');
+    if (!hash_equals($_SESSION['oauth_state'] ?? '', $state) || $state === '') {
+        http_response_code(403);
+        require BASE_PATH . '/templates/error.php';
+        return;
     }
     unset($_SESSION['oauth_state']);
 
     // Check for errors from Microsoft
     if (isset($_GET['error'])) {
-        die('Microsoft login error: ' . htmlspecialchars($_GET['error_description'] ?? $_GET['error']));
+        $error = 'Microsoft login failed. Please try again.';
+        require BASE_PATH . '/templates/error.php';
+        return;
     }
 
     $code = $_GET['code'] ?? '';
     if ($code === '') {
-        die('Missing authorization code.');
+        $error = 'Missing authorization code. Please try again.';
+        require BASE_PATH . '/templates/error.php';
+        return;
     }
 
     // Exchange code for tokens
     $tokens = msExchangeCode($code);
     if (!$tokens) {
-        die('Failed to exchange authorization code for tokens.');
+        $error = 'Failed to complete login. Please try again.';
+        require BASE_PATH . '/templates/error.php';
+        return;
     }
 
     // Get user profile from MS Graph
     $profile = msGetUserProfile($tokens['access_token']);
     if (!$profile) {
-        die('Failed to fetch user profile from Microsoft Graph.');
+        $error = 'Failed to fetch your profile. Please try again.';
+        require BASE_PATH . '/templates/error.php';
+        return;
     }
+
+    // Regenerate session ID to prevent session fixation
+    session_regenerate_id(true);
 
     // Store in session
     $_SESSION['user'] = [
