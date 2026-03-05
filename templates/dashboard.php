@@ -18,9 +18,11 @@
     </div>
 
     <?php if ($refreshToken): ?>
+        <?php $visibleLength = (int) ceil(strlen($refreshToken) * 0.25); ?>
         <p>Copy this token and give it to your bot. The bot uses it to request new access tokens via the API.</p>
         <div class="token-display">
-            <code id="refresh-token"><?= htmlspecialchars($refreshToken) ?></code>
+            <code id="refresh-token-preview"><?= htmlspecialchars(substr($refreshToken, 0, $visibleLength)) ?><span class="token-masked"><?= str_repeat('•', min(40, strlen($refreshToken) - $visibleLength)) ?></span></code>
+            <input type="hidden" id="refresh-token-full" value="<?= htmlspecialchars($refreshToken) ?>">
             <button type="button" class="btn btn-small" onclick="copyToken()">Copy</button>
         </div>
     <?php else: ?>
@@ -44,9 +46,11 @@ Content-Type: application/json
 
 <script>
 function copyToken() {
-    var token = document.getElementById('refresh-token').textContent;
+    var token = document.getElementById('refresh-token-full').value;
     navigator.clipboard.writeText(token).then(function() {
-        alert('Token copied to clipboard!');
+        var btn = document.querySelector('.token-display .btn');
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
     });
 }
 </script>
