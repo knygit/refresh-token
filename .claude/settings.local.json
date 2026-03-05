@@ -4,7 +4,8 @@
       "WebFetch(domain:mddocs.cloudfactorygroup.com)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(openssl rand:*)"
+      "Bash(openssl rand:*)",
+      "Bash(curl:*)"
     ]
   }
 }
