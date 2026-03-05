@@ -1,71 +1,54 @@
 <?php
 
-function loginForm(): void
-{
-    $error = '';
-    require BASE_PATH . '/templates/login.php';
-}
-
 function login(): void
 {
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
-
-    if ($username === '' || $password === '') {
-        $error = 'Please fill in all fields.';
-        require BASE_PATH . '/templates/login.php';
-        return;
-    }
-
-    $user = loginUser($username, $password);
-    if (!$user) {
-        $error = 'Invalid username or password.';
-        require BASE_PATH . '/templates/login.php';
-        return;
-    }
-
-    header('Location: /dashboard');
+    startAppSession();
+    $authUrl = msGetAuthUrl();
+    header('Location: ' . $authUrl);
     exit;
 }
 
-function registerForm(): void
+function callback(): void
 {
-    $error = '';
-    require BASE_PATH . '/templates/register.php';
-}
+    startAppSession();
 
-function register(): void
-{
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $confirm  = $_POST['password_confirm'] ?? '';
+    // Verify state
+    $state = $_GET['state'] ?? '';
+    if ($state === '' || $state !== ($_SESSION['oauth_state'] ?? '')) {
+        die('Invalid OAuth state. Please try again.');
+    }
+    unset($_SESSION['oauth_state']);
 
-    if ($username === '' || $password === '' || $confirm === '') {
-        $error = 'Please fill in all fields.';
-        require BASE_PATH . '/templates/register.php';
-        return;
+    // Check for errors from Microsoft
+    if (isset($_GET['error'])) {
+        die('Microsoft login error: ' . htmlspecialchars($_GET['error_description'] ?? $_GET['error']));
     }
 
-    if (strlen($password) < 8) {
-        $error = 'Password must be at least 8 characters.';
-        require BASE_PATH . '/templates/register.php';
-        return;
+    $code = $_GET['code'] ?? '';
+    if ($code === '') {
+        die('Missing authorization code.');
     }
 
-    if ($password !== $confirm) {
-        $error = 'Passwords do not match.';
-        require BASE_PATH . '/templates/register.php';
-        return;
+    // Exchange code for tokens
+    $tokens = msExchangeCode($code);
+    if (!$tokens) {
+        die('Failed to exchange authorization code for tokens.');
     }
 
-    if (!registerUser($username, $password)) {
-        $error = 'Username is already taken.';
-        require BASE_PATH . '/templates/register.php';
-        return;
+    // Get user profile from MS Graph
+    $profile = msGetUserProfile($tokens['access_token']);
+    if (!$profile) {
+        die('Failed to fetch user profile from Microsoft Graph.');
     }
 
-    // Auto-login after registration
-    loginUser($username, $password);
+    // Store in session
+    $_SESSION['user'] = [
+        'name'  => $profile['displayName'] ?? 'Unknown',
+        'email' => $profile['mail'] ?? $profile['userPrincipalName'] ?? '',
+    ];
+    $_SESSION['access_token'] = $tokens['access_token'];
+    $_SESSION['refresh_token'] = $tokens['refresh_token'] ?? null;
+
     header('Location: /dashboard');
     exit;
 }
@@ -73,6 +56,6 @@ function register(): void
 function logout(): void
 {
     logoutUser();
-    header('Location: /login');
+    header('Location: /');
     exit;
 }

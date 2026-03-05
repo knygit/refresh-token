@@ -7,6 +7,5 @@ function index(): void
         header('Location: /dashboard');
         exit;
     }
-    header('Location: /login');
-    exit;
+    require BASE_PATH . '/templates/home.php';
 }

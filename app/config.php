@@ -12,10 +12,12 @@ if ($env === false) {
     die('Failed to parse .env file.');
 }
 
-define('DB_HOST', $env['DB_HOST'] ?? 'localhost');
-define('DB_NAME', $env['DB_NAME'] ?? 'refresh_token');
-define('DB_USER', $env['DB_USER'] ?? 'root');
-define('DB_PASS', $env['DB_PASS'] ?? '');
-define('DB_PORT', (int)($env['DB_PORT'] ?? 3306));
-define('APP_URL', $env['APP_URL'] ?? 'http://localhost');
+define('MS_CLIENT_ID', $env['MS_CLIENT_ID'] ?? '');
+define('MS_CLIENT_SECRET', $env['MS_CLIENT_SECRET'] ?? '');
+define('MS_TENANT_ID', $env['MS_TENANT_ID'] ?? 'common');
+define('MS_REDIRECT_URI', $env['MS_REDIRECT_URI'] ?? 'http://localhost/callback');
+define('MS_SCOPES', $env['MS_SCOPES'] ?? 'offline_access User.Read');
 define('APP_SECRET', $env['APP_SECRET'] ?? '');
+
+define('MS_AUTHORIZE_URL', 'https://login.microsoftonline.com/' . MS_TENANT_ID . '/oauth2/v2.0/authorize');
+define('MS_TOKEN_URL', 'https://login.microsoftonline.com/' . MS_TENANT_ID . '/oauth2/v2.0/token');
