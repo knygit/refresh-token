@@ -1,7 +1,3 @@
 DirectoryIndex index.php
 Options -MultiViews
-
-RewriteEngine On
-RewriteBase /
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^(.*)$ index.php [QSA,L]
+FallbackResource /index.php
