@@ -1,12 +1,25 @@
 <?php
 
+function isBehindHttps(): bool
+{
+    // Cloudflare sends CF-Visitor header with scheme info
+    if (!empty($_SERVER['HTTP_CF_VISITOR'])) {
+        $visitor = json_decode($_SERVER['HTTP_CF_VISITOR'], true);
+        if (($visitor['scheme'] ?? '') === 'https') {
+            return true;
+        }
+    }
+
+    return isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+}
+
 function startAppSession(): void
 {
     if (session_status() === PHP_SESSION_NONE) {
         session_set_cookie_params([
             'lifetime' => 0,
             'path'     => '/',
-            'secure'   => isset($_SERVER['HTTPS']),
+            'secure'   => isBehindHttps(),
             'httponly'  => true,
             'samesite'  => 'Lax',
         ]);
