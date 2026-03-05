@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:mddocs.cloudfactorygroup.com)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}
