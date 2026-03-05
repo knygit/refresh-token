@@ -27,6 +27,7 @@ $router->get('/login', 'controllers/AuthController.php@login');
 $router->get('/callback', 'controllers/AuthController.php@callback');
 $router->get('/logout', 'controllers/AuthController.php@logout');
 $router->get('/dashboard', 'controllers/DashboardController.php@index');
+$router->post('/revoke', 'controllers/AuthController.php@revoke');
 
 // API
 $router->post('/api/token/refresh', 'controllers/ApiController.php@refresh');

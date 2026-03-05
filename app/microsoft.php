@@ -73,6 +73,28 @@ function msTokenRequest(array $params): ?array
     return $data;
 }
 
+function msRevokeAllSessions(string $accessToken): bool
+{
+    $ch = curl_init('https://graph.microsoft.com/v1.0/me/revokeSignInSessions');
+    curl_setopt_array($ch, [
+        CURLOPT_POST           => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER     => [
+            'Authorization: Bearer ' . $accessToken,
+            'Content-Length: 0',
+        ],
+        CURLOPT_TIMEOUT        => 10,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_SSL_VERIFYHOST => 2,
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    return $httpCode === 200;
+}
+
 function msGetUserProfile(string $accessToken): ?array
 {
     $ch = curl_init('https://graph.microsoft.com/v1.0/me');

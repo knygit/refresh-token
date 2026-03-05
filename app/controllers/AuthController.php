@@ -72,3 +72,28 @@ function logout(): void
     header('Location: /');
     exit;
 }
+
+function revoke(): void
+{
+    $user = requireLogin();
+    $accessToken = $_SESSION['access_token'] ?? '';
+
+    $success = false;
+    if ($accessToken !== '') {
+        $success = msRevokeAllSessions($accessToken);
+    }
+
+    // Always log out locally regardless of revoke result
+    logoutUser();
+
+    if ($success) {
+        startAppSession();
+        $_SESSION['flash'] = 'All sessions have been revoked. You have been signed out everywhere.';
+    } else {
+        startAppSession();
+        $_SESSION['flash'] = 'Could not revoke sessions automatically. Please revoke access manually at https://myaccount.microsoft.com/';
+    }
+
+    header('Location: /');
+    exit;
+}

@@ -1,8 +1,12 @@
-<?php $title = 'Dashboard'; ob_start(); ?>
+<?php
+$title = 'Dashboard';
+$baseUrl = (isBehindHttps() ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
+ob_start();
+?>
 
 <div class="dashboard-header">
     <h1>Dashboard</h1>
-    <div>
+    <div class="dashboard-user">
         <span><?= htmlspecialchars($user['name']) ?> (<?= htmlspecialchars($user['email']) ?>)</span>
         <a href="/logout" class="btn btn-small">Logout</a>
     </div>
@@ -13,8 +17,7 @@
 
     <div class="alert alert-warning">
         <strong>WARNING:</strong> Treat your refresh token like a password. Never share it with anyone you do not trust.
-        If this token is compromised, an attacker can gain access to your account. If you suspect misuse, immediately
-        log out and revoke access in your Microsoft account settings.
+        If this token is compromised, an attacker can gain access to your account.
     </div>
 
     <?php if ($refreshToken): ?>
@@ -32,10 +35,19 @@
     <?php endif; ?>
 </div>
 
+<div class="card card-danger">
+    <h2>Emergency: Revoke All Sessions</h2>
+    <p>If you believe your token has been compromised, immediately revoke all active sessions.
+       This will sign you out everywhere and invalidate all tokens.</p>
+    <form method="post" action="/revoke" onsubmit="return confirm('This will revoke ALL active sessions and sign you out everywhere. Continue?');">
+        <button type="submit" class="btn btn-danger">Revoke All Sessions &amp; Sign Out</button>
+    </form>
+</div>
+
 <div class="card">
     <h2>API Usage</h2>
     <p>Your bot can refresh the access token by calling:</p>
-    <pre><code>POST /api/token/refresh
+    <pre><code>POST <?= htmlspecialchars($baseUrl) ?>/api/token/refresh
 Content-Type: application/json
 
 {"refresh_token": "YOUR_REFRESH_TOKEN"}</code></pre>
